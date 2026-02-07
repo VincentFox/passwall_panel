@@ -10,34 +10,41 @@ now_utc() {
 
 sum_iptables() {
   local total_pkts=0 total_bytes=0 local_pkts=0 local_bytes=0 lan_pkts=0 lan_bytes=0 found=0
-  local out result tpk tby lpk lby lnp lnb fnd
+  local result tpk tby lpk lby lnp lnb fnd
 
-  if ! command -v iptables-save >/dev/null 2>&1; then
+  if ! command -v iptables >/dev/null 2>&1; then
     printf "0 0 0 0 0 0 0\n"
     return 0
   fi
 
-  out=$(iptables-save -c 2>/dev/null || true)
-  if [ -z "$out" ]; then
-    printf "0 0 0 0 0 0 0\n"
-    return 0
-  fi
-
-  result=$(printf "%s\n" "$out" | awk 'BEGIN{IGNORECASE=1}
-    /^\[/ {
-      if (match($0,/^\[([0-9]+):([0-9]+)\] -A ([^ ]+) /,m)) {
-        pkts=m[1]; bytes=m[2]; chain=m[3]; rule=$0;
-        is_pw = (chain ~ /(PSW|PASSWALL|passwall)/ || rule ~ /(passwall|PSW|PASSWALL)/);
-        if (!is_pw) next;
-        is_proxy = (rule ~ /-j (TPROXY|REDIRECT|PSW_RULE)/);
+  result=$(
+    for table in nat mangle; do
+      for chain in PSW PSW_OUTPUT; do
+        iptables -t "$table" -L "$chain" -v -n 2>/dev/null || true
+      done
+    done | awk 'BEGIN{chain=""; table=""}
+      /^Chain / {chain=$2; next;}
+      /^[ \t]*[0-9]/ {
+        pkts=$1; bytes=$2; target=$3;
+        # convert human-readable bytes
+        if (bytes ~ /[KMGTP]$/) {
+          unit=substr(bytes,length(bytes),1);
+          val=substr(bytes,1,length(bytes)-1)+0;
+          if (unit=="K") bytes=val*1024;
+          else if (unit=="M") bytes=val*1024*1024;
+          else if (unit=="G") bytes=val*1024*1024*1024;
+          else if (unit=="T") bytes=val*1024*1024*1024*1024;
+          else if (unit=="P") bytes=val*1024*1024*1024*1024*1024;
+        }
+        is_proxy = (target ~ /^(REDIRECT|TPROXY|PSW_RULE)$/);
         if (!is_proxy) next;
         total_pkts+=pkts; total_bytes+=bytes; found++;
-        if (chain ~ /(PSW_OUTPUT|OUTPUT|output|LOCAL|local)/) { local_pkts+=pkts; local_bytes+=bytes; }
-        else if (chain ~ /(PSW|PREROUTING|prerouting|FORWARD|forward)/) { lan_pkts+=pkts; lan_bytes+=bytes; }
+        if (chain ~ /PSW_OUTPUT/) { local_pkts+=pkts; local_bytes+=bytes; }
+        else if (chain ~ /PSW/) { lan_pkts+=pkts; lan_bytes+=bytes; }
       }
-    }
-    END{printf "%d %d %d %d %d %d %d\n", total_pkts, total_bytes, local_pkts, local_bytes, lan_pkts, lan_bytes, found;}
-  ')
+      END{printf "%d %d %d %d %d %d %d\n", total_pkts, total_bytes, local_pkts, local_bytes, lan_pkts, lan_bytes, found;}
+    '
+  )
 
   set -- $result
   tpk=${1:-0}; tby=${2:-0}; lpk=${3:-0}; lby=${4:-0}; lnp=${5:-0}; lnb=${6:-0}; fnd=${7:-0}
@@ -101,3 +108,6 @@ else
     echo "note: no passwall proxy rules found. try: iptables-save -c | grep -i passwall"
   fi
 fi
+
+
+
