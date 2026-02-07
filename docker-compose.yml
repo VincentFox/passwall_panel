@@ -1,0 +1,13 @@
+version: "3.8"
+services:
+  passwall-panel:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      BASIC_USER: passwall
+      BASIC_PASS: change_me
+      DATA_DIR: /data
+    volumes:
+      - ./data:/data
+    restart: unless-stopped

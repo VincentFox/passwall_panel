@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Passwall Traffic Panel</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div class="pw-wrap">
+    <aside class="pw-sidebar">
+      <div class="pw-brand">
+        <div class="pw-logo"></div>
+        <div>
+          <div class="pw-title">Passwall Panel</div>
+          <div class="pw-sub">Router traffic monitor</div>
+        </div>
+      </div>
+      <div class="pw-menu">
+        <div class="pw-menu-item pw-active">Overview</div>
+        <div class="pw-menu-item">LAN</div>
+        <div class="pw-menu-item">Rules</div>
+        <div class="pw-menu-item">Settings</div>
+      </div>
+      <div class="pw-hint">Use Basic Auth to view data</div>
+    </aside>
+
+    <main class="pw-main">
+      <div class="pw-topbar">
+        <div class="pw-crumbs">Overview</div>
+        <div class="pw-actions">
+          <select id="pw-device-select" class="pw-select"></select>
+          <label class="pw-toggle">
+            <input id="pw-autorefresh" type="checkbox" checked>
+            <span class="pw-toggle-slider"></span>
+            <span class="pw-toggle-label">Auto Refresh</span>
+          </label>
+          <button id="pw-refresh" class="pw-btn">Refresh</button>
+        </div>
+      </div>
+
+      <section class="pw-panel">
+        <div class="pw-panel-title">Devices</div>
+        <div id="pw-device-grid" class="pw-device-grid"></div>
+      </section>
+
+      <section class="pw-cards">
+        <div class="pw-card">
+          <div class="pw-card-title">Total Traffic</div>
+          <div id="pw-total" class="pw-card-value">--</div>
+          <div class="pw-card-sub" id="pw-total-sub">--</div>
+        </div>
+        <div class="pw-card">
+          <div class="pw-card-title">LAN Traffic</div>
+          <div id="pw-lan" class="pw-card-value">--</div>
+          <div class="pw-card-sub" id="pw-lan-sub">--</div>
+        </div>
+        <div class="pw-card">
+          <div class="pw-card-title">Local Traffic</div>
+          <div id="pw-local" class="pw-card-value">--</div>
+          <div class="pw-card-sub" id="pw-local-sub">--</div>
+        </div>
+        <div class="pw-card">
+          <div class="pw-card-title">Rules Count</div>
+          <div id="pw-rules" class="pw-card-value">--</div>
+          <div class="pw-card-sub" id="pw-backend">--</div>
+        </div>
+      </section>
+
+      <section class="pw-panel">
+        <div class="pw-panel-title">Traffic Snapshot</div>
+        <div class="pw-panel-body">
+          <div class="pw-metric">
+            <div class="pw-metric-label">Updated</div>
+            <div id="pw-ts" class="pw-metric-value">--</div>
+          </div>
+          <div class="pw-metric">
+            <div class="pw-metric-label">Total Packets</div>
+            <div id="pw-pkts" class="pw-metric-value">--</div>
+          </div>
+          <div class="pw-metric">
+            <div class="pw-metric-label">Local Packets</div>
+            <div id="pw-local-pkts" class="pw-metric-value">--</div>
+          </div>
+          <div class="pw-metric">
+            <div class="pw-metric-label">LAN Packets</div>
+            <div id="pw-lan-pkts" class="pw-metric-value">--</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="pw-panel">
+        <div class="pw-panel-title">24h Traffic Trend</div>
+        <div class="pw-chart-wrap">
+          <canvas id="pw-chart" width="1200" height="320"></canvas>
+        </div>
+      </section>
+
+      <section class="pw-panel pw-panel-muted">
+        <div class="pw-panel-title">Device</div>
+        <div class="pw-panel-body">
+          <div class="pw-metric">
+            <div class="pw-metric-label">Name</div>
+            <div id="pw-device" class="pw-metric-value">--</div>
+          </div>
+          <div class="pw-metric">
+            <div class="pw-metric-label">IP</div>
+            <div id="pw-ip" class="pw-metric-value">--</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="pw-panel">
+        <div class="pw-panel-title">Router Pull Config</div>
+        <div class="pw-form">
+          <label>OpenWrt Status URL</label>
+          <input id="cfg-url" type="text" placeholder="http://router/passwall/status">
+          <label>Username</label>
+          <input id="cfg-user" type="text" placeholder="user">
+          <label>Password</label>
+          <input id="cfg-pass" type="password" placeholder="password">
+          <label>Interval (seconds)</label>
+          <input id="cfg-interval" type="number" min="3" value="10">
+          <label class="pw-toggle">
+            <input id="cfg-enabled" type="checkbox">
+            <span class="pw-toggle-slider"></span>
+            <span class="pw-toggle-label">Enable Pull</span>
+          </label>
+          <div class="pw-form-actions">
+            <button id="cfg-save" class="pw-btn">Save</button>
+            <button id="cfg-pull" class="pw-btn">Pull Now</button>
+          </div>
+          <div id="cfg-msg" class="pw-sub"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>
